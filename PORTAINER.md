@@ -30,7 +30,11 @@ Unter den Services einen einmaligen Migrator ergänzen:
     entrypoint:
       - bash
       - -lc
-    command: 'bench --site invoice.etmail.de migrate && bench --site invoice.etmail.de clear-cache'
+    command: >
+      cd /home/frappe/frappe-bench &&
+      bench --site invoice.etmail.de migrate &&
+      bench --site invoice.etmail.de clear-cache &&
+      bench --site invoice.etmail.de execute frappe.cache.delete_value --kwargs "{'keys':'assets_json','shared':True}"
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -50,7 +54,7 @@ Bei `backend`, `websocket`, `queue-short`, `queue-long` und `scheduler` jeweils 
 
 `frontend` bleibt wie bisher von `backend` und `websocket` abhängig.
 
-Damit startet die Anwendung erst, wenn `bench migrate` erfolgreich war.
+Damit startet die Anwendung erst, wenn `bench migrate` erfolgreich war. Der Migrator leert anschließend zusätzlich den gemeinsamen Frappe-Asset-Cache `assets_json`, damit wkhtmltopdf nach einem Image-Update keine alten gehashten Asset-Dateien mehr anfordert.
 
 ## 4. GHCR-Paket einmalig freigeben
 
